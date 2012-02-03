@@ -1,4 +1,10 @@
+/*
+ * Copyright 2011 Marius Kintel <marius@kintel.net>
+ * Consider this file public domain
+ *
+ */
 #include "QOsgWidget.h"
+#include <QDebug>
 
 #include <osgGA/TrackballManipulator>
 #include <osgViewer/ViewerEventHandlers>
@@ -9,12 +15,14 @@ QOsgWidget::QOsgWidget(QWidget* parent) : osgQt::GLWidget(parent)
   this->addEventHandler(new osgViewer::StatsHandler);
   this->setCameraManipulator(new osgGA::TrackballManipulator);
 
-  connect(&this->timer, SIGNAL(timeout()), this, SLOT(update()));
-  this->timer.start(10);
+  // Before calling setViewer(), this object needs to have a reference count of > 0
+  this->ref();
+  osgQt::setViewer(this);
 }
 
 QOsgWidget::~QOsgWidget()
 {
+  this->unref();
 }
 
 void QOsgWidget::setupContext()
@@ -44,3 +52,10 @@ void QOsgWidget::setupContext()
   // _camera->setReadBuffer(buffer);
 }
 
+#if 0 // For ON_DEMAND debugging
+void QOsgWidget::frame(double simulationTime)
+{
+  qDebug() << "QOsgWidget::frame()";
+  osgViewer::ViewerBase::frame(simulationTime);
+}
+#endif
