@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Marius Kintel <marius@kintel.net>
+ * Copyright 2011-2012 Marius Kintel <marius@kintel.net>
  * Consider this file public domain
  *
  */
@@ -17,12 +17,53 @@ QOsgWidget::QOsgWidget(QWidget* parent) : osgQt::GLWidget(parent)
 
   // Before calling setViewer(), this object needs to have a reference count of > 0
   this->ref();
-  osgQt::setViewer(this);
+  setDrawMethod(HEARTBEAT);
 }
 
 QOsgWidget::~QOsgWidget()
 {
-  this->unref();
+  //  this->unref();
+}
+
+void QOsgWidget::setDrawMethod(DrawMethod method)
+{
+  this->drawmethod = method;
+  switch (this->drawmethod) {
+  case HEARTBEAT:
+    setRunFrameScheme(osgViewer::ViewerBase::ON_DEMAND);
+    osgQt::setViewer(this);
+    break;
+  case PAINTEVENT:
+  default:
+    osgQt::setViewer(NULL);
+    break;
+  }
+}
+
+void QOsgWidget::requestRedraw()
+{
+  qDebug() << "QOsgWidget::requestRedraw()";
+  switch (this->drawmethod) {
+  case PAINTEVENT:
+    update();
+    break;
+  case HEARTBEAT:
+    osgViewer::View::requestRedraw();
+    break;
+  }
+}
+
+void QOsgWidget::glDraw()
+{
+  qDebug() << "QOsgWidget::glDraw()";
+  switch (this->drawmethod) {
+  case PAINTEVENT:
+    frame();
+    break;
+  case HEARTBEAT:
+    osgViewer::View::requestRedraw();
+    break;
+  }
 }
 
 void QOsgWidget::setupContext()
@@ -52,10 +93,8 @@ void QOsgWidget::setupContext()
   // _camera->setReadBuffer(buffer);
 }
 
-#if 0 // For ON_DEMAND debugging
 void QOsgWidget::frame(double simulationTime)
 {
   qDebug() << "QOsgWidget::frame()";
   osgViewer::ViewerBase::frame(simulationTime);
 }
-#endif

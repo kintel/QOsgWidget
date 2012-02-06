@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 Marius Kintel <marius@kintel.net>
+ * Copyright 2011-2012 Marius Kintel <marius@kintel.net>
  * Consider this file public domain
  *
  */
@@ -15,14 +15,22 @@ class QOsgWidget : public osgQt::GLWidget, public osgViewer::Viewer
 {
 public:
   QOsgWidget(QWidget* parent = NULL);
-#if 0 // For ON_DEMAND debugging
-  virtual void frame(double simulationTime);
-#endif
+
+  enum DrawMethod { HEARTBEAT, PAINTEVENT };
+  void setDrawMethod(DrawMethod method);
+
+  virtual void frame(double simulationTime=USE_REFERENCE_TIME);
+
+  void requestRedraw();
+  void glDraw();
 
 protected:
   ~QOsgWidget();
 
   void setupContext();
+
+private:
+  DrawMethod drawmethod;
 };
 
 #endif
